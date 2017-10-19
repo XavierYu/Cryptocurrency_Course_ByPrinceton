@@ -27,19 +27,19 @@ public class TxHandler {
         // IMPLEMENT THIS
         ArrayList<Transaction.Output> OutputsArray = tx.getOutputs();
         ArrayList<Transaction.Input> InputsArray = tx.getInputs();
-        ArrayList<UTXO> UTXOArray = new ArrayList<UTXO>();
+        UTXOArray = new ArrayList<UTXO>();
         double inputsum = 0;
         double outputsum = 0;
 
         //* (1) & (2) & (3)
         for (Transaction.Input Input : InputsArray) {
-            UTXO utxo =  new UTXO(Input.prevTxHash, outputIndex);
+            utxo =  new UTXO(Input.prevTxHash, Input.outputIndex);
 
             //* (3) no UTXO is claimed multiple times by {@code tx},
             if (UTXOArray.contains(utxo)) {
                 return false;
             }
-
+            
             UTXOArray.add(utxo);
             //* (1)all outputs claimed by {@code tx} are in the current UTXO pool,
             if (!HandlerUtxoPool.contains(utxo)) {
@@ -65,7 +65,7 @@ public class TxHandler {
 
         //* the sum of {@code tx}s input values is greater than or equal to the sum of its output
         if (inputsum >= outputsum) {
-            return true;
+            return false;
         }
 
         return true;
@@ -78,6 +78,23 @@ public class TxHandler {
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
         // IMPLEMENT THIS
+    	acceptedTxs = new ArrayList<Transaction>();
+    	for(Transaction tx : possibleTxs) {
+    		if (isValidTx(tx)) {
+    			acceptedTxs.add(tx);
+    			for (int i = 0; i<tx.numInputs(); i++) {
+    	            utxo =  new UTXO(Input.prevTxHash, Input.outputIndex);
+    				HandlerUtxoPool.remove(utxo);
+    			}
+    			for (int i = 0; i<tx.numOutputs(); i++) {
+    				utxo =  new UTXO(tx.getHash(), i);
+    				HandlerUtxoPool.add(utxo, tx.getOutputs()[i]);
+    			}
+    			    			
+    		}
+    		Transaction[] txArray = acceptedTxs.toArray(new Transaction[acceptedTxs.size()]);
+    	}
+    	return txArray;
     }
 
 }
