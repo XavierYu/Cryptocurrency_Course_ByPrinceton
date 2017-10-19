@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Array;
 
 public class TxHandler {
 
@@ -27,13 +28,13 @@ public class TxHandler {
         // IMPLEMENT THIS
         ArrayList<Transaction.Output> OutputsArray = tx.getOutputs();
         ArrayList<Transaction.Input> InputsArray = tx.getInputs();
-        UTXOArray = new ArrayList<UTXO>();
+        ArrayList<UTXO> UTXOArray = new ArrayList<UTXO>();
         double inputsum = 0;
         double outputsum = 0;
 
         //* (1) & (2) & (3)
-        for (Transaction.Input Input : InputsArray) {
-            utxo =  new UTXO(Input.prevTxHash, Input.outputIndex);
+        for (Transaction.Input InputItem : InputsArray) {
+            UTXO utxo =  new UTXO(InputItem.prevTxHash, InputItem.outputIndex);
 
             //* (3) no UTXO is claimed multiple times by {@code tx},
             if (UTXOArray.contains(utxo)) {
@@ -55,12 +56,12 @@ public class TxHandler {
         }
 
         //* (4) & (5)
-        for (Transaction.Output Output : OutputsArray) {
+        for (Transaction.Output OutputItem : OutputsArray) {
             //* (4) all of {@code tx}s output values are non-negative, and
-            if (Output.value < 0) {
+            if (OutputItem.value < 0) {
                 return false;
             }           
-            outputsum = outputsum + Output.value;       
+            outputsum = outputsum + OutputItem.value;       
         }
 
         //* the sum of {@code tx}s input values is greater than or equal to the sum of its output
@@ -78,23 +79,24 @@ public class TxHandler {
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
         // IMPLEMENT THIS
-    	acceptedTxs = new ArrayList<Transaction>();
-    	for(Transaction tx : possibleTxs) {
-    		if (isValidTx(tx)) {
-    			acceptedTxs.add(tx);
-    			for (int i = 0; i<tx.numInputs(); i++) {
-    	            utxo =  new UTXO(Input.prevTxHash, Input.outputIndex);
-    				HandlerUtxoPool.remove(utxo);
-    			}
-    			for (int i = 0; i<tx.numOutputs(); i++) {
-    				utxo =  new UTXO(tx.getHash(), i);
-    				HandlerUtxoPool.add(utxo, tx.getOutputs()[i]);
-    			}
-    			    			
-    		}
-    		Transaction[] txArray = acceptedTxs.toArray(new Transaction[acceptedTxs.size()]);
-    	}
-    	return txArray;
+        ArrayList<Transaction> acceptedTxs = new ArrayList<Transaction>();
+        for(Transaction tx : possibleTxs) {
+            if (isValidTx(tx)) {
+                acceptedTxs.add(tx);
+                for (int i = 0; i<tx.numInputs(); i++) {
+                    UTXO utxo =  new UTXO(tx.getInputs().get(i).prevTxHash, tx.getInputs().get(i).outputIndex);
+                    HandlerUtxoPool.removeUTXO(utxo);
+                }
+                for (int i = 0; i<tx.numOutputs(); i++) {
+                    UTXO utxo =  new UTXO(tx.getHash(), i);
+                    HandlerUtxoPool.addUTXO(utxo, tx.getOutputs().get(i));
+                }
+                                
+            }
+        Transaction[] txArray;
+        txArray = acceptedTxs.toArray(new Transaction[acceptedTxs.size()]);
+        }
+        return txArray;
     }
 
 }
